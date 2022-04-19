@@ -54,8 +54,8 @@ done
 
 # Download config files from git repo
 configDownloadList=(
-    #".zshrc"
-    #".p10k.zsh"    
+    "https://raw.githubusercontent.com/jdwv/linux-quick-setup/main/.zshrc"
+    "https://raw.githubusercontent.com/jdwv/linux-quick-setup/main/.p10k.zsh"
 )
 for cloudFile in ${configDownloadList[@]}; do 
     cd $HOME
