@@ -10,6 +10,8 @@ ApplicationList=(
     "vim"
     "git"
     "curl"
+    "timewarrior"
+    "taskwarrior"
 )
 echo "Updating repositories before installing apps"
 sudo apt update
