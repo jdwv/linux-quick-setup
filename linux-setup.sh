@@ -46,7 +46,7 @@ for configFile in ${configFileList[@]}; do
         echo "${configFilePath} exists - backing up"
         backupTimeStamp=`date +"%Y%m%d-%H%M%S"`
         newConfigFileName="${configFilePath}.${backupTimeStamp}.bak"
-        mv configFilePath newConfigFileName
+        mv $configFilePath $newConfigFileName
     else
         echo "${configFilePath} does not exist - skipping backup"
     fi
