@@ -32,6 +32,9 @@ sudo chsh -s $(which zsh) $(whoami)
 # Install ohmyzsh
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 
+# Clone powerlevel10k
+git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+
 # Backup config files in $HOME
 configFileList=(
     ".zshrc"
@@ -48,7 +51,6 @@ for configFile in ${configFileList[@]}; do
         echo "${configFilePath} does not exist - skipping backup"
     fi
 done
-
 
 # Download config files from git repo
 configDownloadList=(
