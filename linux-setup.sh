@@ -47,7 +47,8 @@ fi
 # Backup config files in $HOME
 configFileList=(
     ".zshrc"
-    ".p10k.zsh"    
+    ".p10k.zsh" 
+    ".vimrc"
 )
 for configFile in ${configFileList[@]}; do 
     configFilePath="${HOME}/${configFile}"
@@ -63,8 +64,9 @@ done
 
 # Download config files from git repo
 configDownloadList=(
-    "https://raw.githubusercontent.com/jdwv/linux-quick-setup/main/.zshrc"
-    "https://raw.githubusercontent.com/jdwv/linux-quick-setup/main/.p10k.zsh"
+    "https://raw.githubusercontent.com/jdwv/linux-quick-setup/main/config/.zshrc"
+    "https://raw.githubusercontent.com/jdwv/linux-quick-setup/main/config/.p10k.zsh"
+    "https://raw.githubusercontent.com/jdwv/linux-quick-setup/main/config/.vimrc"
 )
 for cloudFile in ${configDownloadList[@]}; do 
     cd $HOME
