@@ -63,6 +63,7 @@ configFileList=(
     ".zshrc"
     ".p10k.zsh" 
     ".vimrc"
+    ".tmux.conf"
 )
 for configFile in ${configFileList[@]}; do 
     configFilePath="${HOME}/${configFile}"
@@ -81,6 +82,7 @@ configDownloadList=(
     "https://raw.githubusercontent.com/jdwv/linux-quick-setup/main/config/.zshrc"
     "https://raw.githubusercontent.com/jdwv/linux-quick-setup/main/config/.p10k.zsh"
     "https://raw.githubusercontent.com/jdwv/linux-quick-setup/main/config/.vimrc"
+    "https://raw.githubusercontent.com/jdwv/linux-quick-setup/main/config/.tmux.conf"
 )
 for cloudFile in ${configDownloadList[@]}; do 
     cd $HOME
