@@ -178,10 +178,10 @@ for configFile in ${configFileList[@]}; do
         newConfigFileName="${configFilePath}.${backupTimeStamp}.bak"
         mv $configFilePath $newConfigFileName
         echo "Removing the following files"
-        /usr/bin/ls -t ${configFile}.*.bak | tail -n +3 
+        /usr/bin/find $HOME/${configFile}.*.bak -type f -mtime +10  -printf '%T+ %p\n' | sort -r | awk '{print $NF}' | tail -n +3 
         # Find all backups of current config file
         #  - Keep only 2 that are older than 10 days
-        /usr/bin/find $HOME/${configFile}.*.bak -type f -mtime +10  -printf '%T+ %p\n' | sort -r | awk '{print $NF}' | tail -n +3 | xargs rm --
+        /usr/bin/find $HOME/${configFile}.*.bak -type f -mmin +10  -printf '%T+ %p\n' | sort -r | awk '{print $NF}' | tail -n +3 | xargs rm --
     else
         echo "${configFilePath} does not exist - skipping backup"
     fi
