@@ -25,7 +25,7 @@ echo "Updating repositories before installing apps"
 #########################
 
 rpmOSTree=$(rpm-ostree -status | grep silverblue > /dev/null; echo $?)
-if [[ rpmOSTree == 0 ]]; then
+if [[ rpmOSTree -eq 0 ]]; then
     echo "Fedora Silverblue installed"
     installString="rpm-ostree install -y"
 elif command -v apt &> /dev/null; then
@@ -44,10 +44,10 @@ fi
 
 for app in ${ApplicationList[@]}; do 
     echo "Checking $app"
-    dpkg -s "$app" &> /dev/null
+    eval "which $app" &> /dev/null
     if [[ $? -ne 0 ]]; then
         echo "${app} not installed"
-        sudo $installString $app
+        eval "sudo $installString $app"
     else
         echo "${app} already installed - skipping"
     fi
