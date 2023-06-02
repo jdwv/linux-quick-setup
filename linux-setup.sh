@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 
+cd $HOME
+
 # Super bad it, don't do this. I wrote this file, therefore I trust it.
 # wget -O - https://thisfile.sh | bash
 
@@ -58,6 +60,21 @@ else
     echo "zsh autocomplete already installed - skipping"
 fi
 
+# Download font
+customFontName="Agave"
+customFontFile="$customFontName.zip"
+fontURL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.1/$customFontName.zip"
+fontDir="${HOME}/.local/share/fonts/$customFontName"
+
+if [[ ! -d $fontDir ]]; then
+    curl -L -O $fontURL
+    mkdir -p $fontDir
+    unzip $customFontFile -d $fontDir
+    rm $customFontFile
+else
+    echo "Font '$customFontName' already installed - skipping"
+fi
+
 # Backup config files in $HOME
 configFileList=(
     ".zshrc"
@@ -72,6 +89,9 @@ for configFile in ${configFileList[@]}; do
         backupTimeStamp=`date +"%Y%m%d-%H%M%S"`
         newConfigFileName="${configFilePath}.${backupTimeStamp}.bak"
         mv $configFilePath $newConfigFileName
+        echo "Removing the following files"
+        /usr/bin/ls -t ${configFile}.*.bak | tail -n +3 
+        /usr/bin/ls -t ${configFile}.*.bak | tail -n +3 | xargs rm --
     else
         echo "${configFilePath} does not exist - skipping backup"
     fi
