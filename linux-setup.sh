@@ -24,7 +24,7 @@ echo "Updating repositories before installing apps"
 # Check Package Manager #
 #########################
 
-rpmOSTree=$(rpm-ostree -status | grep silverblue > /dev/null; echo $?)
+rpmOSTree=$(rpm-ostree status | grep silverblue > /dev/null; echo $?)
 if [[ rpmOSTree -eq 0 ]]; then
     echo "Fedora Silverblue installed"
     installString="rpm-ostree install -y"
