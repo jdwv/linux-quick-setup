@@ -35,7 +35,7 @@ echo "Updating repositories before installing apps"
 # Check Package Manager #
 #########################
 
-if rpm-ostree status | grep silverblue > /dev/null; then
+if rpm-ostree status | grep silverblue &> /dev/null; then
     echo "Fedora Silverblue installed"
     installString="rpm-ostree install -y"
 elif command -v apt &> /dev/null; then
