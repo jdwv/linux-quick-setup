@@ -35,19 +35,20 @@ echo "Updating repositories before installing apps"
 # Check Package Manager #
 #########################
 
-rpmOSTree=$(rpm-ostree status | grep silverblue > /dev/null; echo $?)
-if [[ rpmOSTree -eq 0 ]]; then
+if rpm-ostree status | grep silverblue > /dev/null; then
     echo "Fedora Silverblue installed"
     installString="rpm-ostree install -y"
 elif command -v apt &> /dev/null; then
     echo "Debian-based distro"
-    installString="apt install -y"
+    installString="apt-get install -y"
 elif command -v yum &> /dev/null; then
     echo "Red Hat-based distro"
+    installString="yum install -y"
 elif command -v pacman &> /dev/null; then
     echo "Arch-based distro"
+    installString="pacman -Syu --noconfirm"
 elif command -v dnf &> /dev/null; then
-    echo "Fedora-based distroo"
+    echo "Fedora-based distro"
     installString="dnf install -y"
 else
     echo "Unknown package manager"
