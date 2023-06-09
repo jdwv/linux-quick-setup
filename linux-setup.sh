@@ -5,6 +5,17 @@ cd $HOME
 # Super bad it, don't do this. I wrote this file, therefore I trust it.
 # wget -O - https://thisfile.sh | bash
 
+
+# Funtions
+
+popd_if_stack_not_empty() {
+    # Check if the directory stack has more than one entry
+    if [[ $(dirs -p | wc -l) -gt 1 ]]; then
+        # Run popd only if the stack is not empty
+        popd
+    fi
+}
+
 ################
 # Install apps #
 ################
@@ -61,12 +72,22 @@ sudo chsh -s $(which zsh) $(whoami)
 ###################
 # Install ohmyzsh #
 ###################
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended > /dev/null
-if [[ $? == 1 ]]; then
+
+# Check if ohmyzsh repo exists in home directory
+
+ohmyzsh_remote_url=$(git -C ~/.oh-my-zsh remote get-url origin)
+official_remote_url="https://github.com/ohmyzsh/ohmyzsh.git"
+
+if [[ "$ohmyzsh_remote_url" == "$official_remote_url" ]]; then
     echo "Oh My Zsh - already installed - updating"
     "$ZSH/tools/upgrade.sh"
 else
     echo "Oh My Zsh - new install"
+    if [ -d "$ZSH" ]; then
+        echo "Removing existing ZSH folder: $ZSH"
+        rm -rf "$ZSH"
+    fi
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended > /dev/null
 fi
 
 #######################
@@ -88,11 +109,11 @@ then
         git checkout -b $BRANCH origin/$BRANCH
     fi
     #git reset --hard origin/$BRANCH
-    popd
+    popd_if_stack_not_empty
 else
     git clone $REPO $TARGET_DIR
 fi
-popd
+popd_if_stack_not_empty
 
 #################################
 # Clone zsh syntax highlighting #
@@ -113,11 +134,11 @@ then
         git checkout -b $BRANCH origin/$BRANCH
     fi
     #git reset --hard origin/$BRANCH
-    popd
+    popd_if_stack_not_empty
 else
     git clone $REPO $TARGET_DIR
 fi
-popd
+popd_if_stack_not_empty
 
 ###########################
 # Clone zsh auto complete #
@@ -138,11 +159,11 @@ then
         git checkout -b $BRANCH origin/$BRANCH
     fi
     #git reset --hard origin/$BRANCH
-    popd
+    popd_if_stack_not_empty
 else
     git clone $REPO $TARGET_DIR
 fi
-popd
+popd_if_stack_not_empty
 
 #################
 # Download font #
@@ -161,32 +182,6 @@ else
     echo "Font '$customFontName' already installed - skipping"
 fi
 
-################################
-# Backup config files in $HOME #
-################################
-configFileList=(
-    ".zshrc"
-    ".p10k.zsh" 
-    ".vimrc"
-    ".tmux.conf"
-)
-for configFile in ${configFileList[@]}; do 
-    configFilePath="${HOME}/${configFile}"
-    if [[ -f "${configFilePath}" ]]; then 
-        echo "${configFilePath} exists - backing up"
-        backupTimeStamp=`date +"%Y%m%d-%H%M%S"`
-        newConfigFileName="${configFilePath}.${backupTimeStamp}.bak"
-        mv $configFilePath $newConfigFileName
-        echo "Removing the following files"
-        /usr/bin/find $HOME/${configFile}.*.bak -type f -mtime +10  -printf '%T+ %p\n' | sort -r | awk '{print $NF}' | tail -n +3 
-        # Find all backups of current config file
-        #  - Keep only 2 that are older than 10 days
-        /usr/bin/find $HOME/${configFile}.*.bak -type f -mmin +10  -printf '%T+ %p\n' | sort -r | awk '{print $NF}' | tail -n +3 | xargs rm --
-    else
-        echo "${configFilePath} does not exist - skipping backup"
-    fi
-done
-
 #######################################
 # Download config files from git repo #
 #######################################
@@ -196,7 +191,46 @@ configDownloadList=(
     "https://raw.githubusercontent.com/jdwv/linux-quick-setup/main/config/.vimrc"
     "https://raw.githubusercontent.com/jdwv/linux-quick-setup/main/config/.tmux.conf"
 )
-for cloudFile in ${configDownloadList[@]}; do 
-    cd $HOME
-    curl -O $cloudFile
+
+for cloudFile in "${configDownloadList[@]}"; do 
+    fileName=$(basename "$cloudFile")
+    localFilePath="${HOME}/${fileName}"
+    backupDir="${HOME}/config_backups"
+    backupCount=5
+
+    # Check if local file and remote file have the same checksum
+    if [[ -f "$localFilePath" && $(curl -s "$cloudFile" | md5sum | awk '{print $1}') == $(md5sum "$localFilePath" | awk '{print $1}') ]]; then
+        echo "Skipping download of $fileName - Local file and remote file are the same."
+    else
+        # Create backup directory if it doesn't exist
+        if [[ ! -d "$backupDir" ]]; then
+            mkdir "$backupDir"
+        fi
+
+        # Backup existing file with date timestamp
+        timestamp=$(date +%Y%m%d%H%M%S)
+        backupFilePath="${backupDir}/${fileName}.${timestamp}"
+        cp "$localFilePath" "$backupFilePath"
+
+        echo "Existing $fileName backed up to $backupFilePath"
+
+        # Delete old backups, keeping only the most recent $backupCount
+        backups=("$backupDir/${fileName}".*)
+        backupCount=$((${#backups[@]} - $backupCount))
+
+        if [[ $backupCount -gt 0 ]]; then
+            # Sort backups by modification time, oldest first
+            IFS=$'\n' sortedBackups=($(ls -t "${backups[@]}"))
+            unset IFS
+
+            # Remove oldest backups
+            for ((i = 0; i < backupCount; i++)); do
+                rm "${sortedBackups[$i]}"
+                echo "Removed old backup: ${sortedBackups[$i]}"
+            done
+        fi
+        echo "Downloading $fileName..."
+        curl -o "$localFilePath" "$cloudFile"
+    fi
 done
+

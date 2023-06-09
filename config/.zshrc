@@ -40,3 +40,26 @@ fi
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# Distrobox run missing commands in host
+if command -v distrobox-host-exec &> /dev/null; then
+    echo "Host function set"
+    command_not_found_handle() {
+        # don't run if not in a container
+        if [ ! -e /run/.containerenv ] && [ ! -e /.dockerenv ]; then
+            exit 127
+        fi
+        
+    #    prompt="> Command not found - run in host? [y/n]: "
+    #    echo -n -e "\033[31m$prompt\033[0m"
+    #    read answer
+    #    if [[ "$answer" =~ ^[Yy]$ ]] then;
+            distrobox-host-exec "${@}"
+    #    fi
+    }
+    if [ -n "${ZSH_VERSION-}" ]; then
+        command_not_found_handler() {
+            command_not_found_handle "$@"
+        }
+    fi
+fi
