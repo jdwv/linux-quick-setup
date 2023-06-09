@@ -43,19 +43,12 @@ fi
 
 # Distrobox run missing commands in host
 if command -v distrobox-host-exec &> /dev/null; then
-    echo "Host function set"
     command_not_found_handle() {
         # don't run if not in a container
         if [ ! -e /run/.containerenv ] && [ ! -e /.dockerenv ]; then
             exit 127
         fi
-        
-    #    prompt="> Command not found - run in host? [y/n]: "
-    #    echo -n -e "\033[31m$prompt\033[0m"
-    #    read answer
-    #    if [[ "$answer" =~ ^[Yy]$ ]] then;
-            distrobox-host-exec "${@}"
-    #    fi
+        distrobox-host-exec "${@}"
     }
     if [ -n "${ZSH_VERSION-}" ]; then
         command_not_found_handler() {
