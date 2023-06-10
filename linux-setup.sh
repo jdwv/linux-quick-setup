@@ -28,6 +28,7 @@ ApplicationList=(
     "curl"
     "distrobox"
 )
+
 echo "Updating repositories before installing apps"
 #sudo apt update
 
@@ -37,7 +38,82 @@ echo "Updating repositories before installing apps"
 
 if rpm-ostree status | grep silverblue &> /dev/null; then
     echo "Fedora Silverblue installed"
+
+    # flatpak | Download flatpak service files
+    flatpakDownloadList=(
+        "https://raw.githubusercontent.com/jdwv/linux-quick-setup/main/etc/systemd/system/flatpak-automatic.service"
+        "https://raw.githubusercontent.com/jdwv/linux-quick-setup/main/etc/systemd/system/flatpak-automatic.timer"
+    )
+
+    for cloudFile in "${flatpakDownloadList[@]}"; do 
+        fileName=$(basename "$cloudFile")
+        localFilePath="/etc/systemd/system/${fileName}"
+        backupDir="/etc/systemd/system/config_backups"
+        backupCount=2
+
+        # Check if local file and remote file have the same checksum
+        if [[ -f "$localFilePath" && $(curl -s "$cloudFile" | md5sum | awk '{print $1}') == $(md5sum "$localFilePath" | awk '{print $1}') ]]; then
+            echo "Skipping download of $fileName - Local file and remote file are the same."
+        else
+            # Create backup directory if it doesn't exist
+            if [[ ! -d "$backupDir" ]]; then
+                sudo mkdir "$backupDir"
+            fi
+
+            # Backup existing file with date timestamp
+            timestamp=$(date +%Y%m%d%H%M%S)
+            backupFilePath="${backupDir}/${fileName}.${timestamp}"
+            sudo cp "$localFilePath" "$backupFilePath"
+
+            echo "Existing $fileName backed up to $backupFilePath"
+
+            # Delete old backups, keeping only the most recent $backupCount
+            backups=("$backupDir/${fileName}".*)
+            backupCount=$((${#backups[@]} - $backupCount))
+
+            if [[ $backupCount -gt 0 ]]; then
+                # Sort backups by modification time, oldest first
+                IFS=$'\n' sortedBackups=($(ls -t "${backups[@]}"))
+                unset IFS
+
+                # Remove oldest backups
+                for ((i = 0; i < backupCount; i++)); do
+                    sudo rm "${sortedBackups[$i]}"
+                    echo "Removed old backup: ${sortedBackups[$i]}"
+                done
+            fi
+            echo "Downloading $fileName..."
+            sudo curl -o "$localFilePath" "$cloudFile"
+        fi
+    done
+
+    # flatpak | Reload daemon before enabling new service
+    sudo systemctl daemon-reload
+
+    # flatpak | Copy + enable flatpak service/timer
+    sudo systemctl enable --now flatpak-automatic.timer
+
+    # flatpak | Enable flatpak home/host restrictions
+    flatpak override --user --nofilesystem=home
+    flatpak override --user --nofilesystem=host
+
+    # rpm-ostreee | set staging config
+    sudo sed -i 's/#AutomaticUpdatePolicy.*/AutomaticUpdatePolicy=stage/' /etc/rpm-ostreed.conf
+
+    # rpm-ostree | Enable staging for rpm-ostree + timer service
+    sudo systemctl enable rpm-ostreed-automatic.timer --now
+
+    # Set install string for remaineder of script    
     installString="rpm-ostree install -y"
+
+    # Add apps to list to install
+    sudo rpm-ostree install -y gnome-tweaks
+
+    # Flatseal
+    flatpak install -y --noninteractive flathub com.github.tchx84.Flatseal                                                                                                                                                                                        ─╯
+
+
+
 elif command -v apt &> /dev/null; then
     echo "Debian-based distro"
     installString="apt-get install -y"
@@ -52,6 +128,7 @@ elif command -v dnf &> /dev/null; then
     installString="dnf install -y"
 else
     echo "Unknown package manager"
+    exit 1
 fi
 
 for app in ${ApplicationList[@]}; do 
@@ -109,7 +186,6 @@ then
     else
         git checkout -b $BRANCH origin/$BRANCH
     fi
-    #git reset --hard origin/$BRANCH
     popd_if_stack_not_empty
 else
     git clone $REPO $TARGET_DIR
@@ -134,7 +210,6 @@ then
     else
         git checkout -b $BRANCH origin/$BRANCH
     fi
-    #git reset --hard origin/$BRANCH
     popd_if_stack_not_empty
 else
     git clone $REPO $TARGET_DIR
@@ -159,7 +234,6 @@ then
     else
         git checkout -b $BRANCH origin/$BRANCH
     fi
-    #git reset --hard origin/$BRANCH
     popd_if_stack_not_empty
 else
     git clone $REPO $TARGET_DIR
