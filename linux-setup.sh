@@ -109,10 +109,13 @@ if rpm-ostree status | grep silverblue &> /dev/null; then
     # Add apps to list to install
     sudo rpm-ostree install -y gnome-tweaks
 
-    # Flatseal
-    flatpak install -y --noninteractive flathub com.github.tchx84.Flatseal                                                                                                                                                                                        ─╯
+    # Flathub setup
+    flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
 
-
+    # Install flatpaks
+    flatpak install -y --noninteractive flathub com.github.tchx84.Flatseal         
+    flatpak install -y --noninteractive org.mozilla.firefox      
+    xdg-settings set default-web-browser org.mozilla.firefox.desktop
 
 elif command -v apt &> /dev/null; then
     echo "Debian-based distro"
