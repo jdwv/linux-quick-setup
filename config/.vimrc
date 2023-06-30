@@ -6,6 +6,9 @@ syntax on
 " Auto reload .vimrc when saved
 au BufWritePost .vimrc so ~/.vimrc
 
+# User paste mode for inserts - keeps indentation
+set paste
+
 set backspace=2
 set nocompatible " Using Vim, not Vi
 set backspace=indent,eol,start " Normal backspace behaviour
