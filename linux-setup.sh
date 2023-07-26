@@ -163,8 +163,8 @@ if [[ $? -ne 0 ]]; then
         echo "Error: Shell '$desired_shell' not found."
     else
         # Use sed to update the /etc/passwd file
-        sudo sed -i "s|^$username:[^:]*:|$username:$shell_path:|" /etc/passwd
-		echo "Shell for user $username has been updated to $shell_path"
+        #sudo sed -i "s|^$username:[^:]*:|$username:$shell_path:|" /etc/passwd
+		echo "Shell for user $username needs to be updated to $shell_path"
 	fi
 else
     sudo chsh -s $(which zsh) $(whoami)
