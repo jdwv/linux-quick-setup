@@ -7,7 +7,8 @@ syntax on
 au BufWritePost .vimrc so ~/.vimrc
 
 # User paste mode for inserts - keeps indentation
-set paste
+# Set as shortcut - don't enable by default
+:map <F10> :set invpaste<CR>
 
 set backspace=2
 set nocompatible " Using Vim, not Vi

@@ -148,14 +148,33 @@ done
 ################
 # Change shell #
 ################
-sudo chsh -s $(which zsh) $(whoami)
+eval "which chsh" &> /dev/null
+if [[ $? -ne 0 ]]; then
+    echo "chsh not installed - manual sed replace on /etc/passwd"
+    # Define the username and desired shell
+    username=$(whoami)
+    desired_shell="zsh"
+
+    # Get the correct path for the desired shell
+    shell_path=$(which "$desired_shell")
+
+    # Check if the shell is found by 'which'
+    if [ -z "$shell_path" ]; then
+        echo "Error: Shell '$desired_shell' not found."
+    else
+        # Use sed to update the /etc/passwd file
+        sudo sed -i "s|^$username:[^:]*:|$username:$shell_path:|" /etc/passwd
+		echo "Shell for user $username has been updated to $shell_path"
+	fi
+elif
+    sudo chsh -s $(which zsh) $(whoami)
+fi
 
 ###################
 # Install ohmyzsh #
 ###################
 
 # Check if ohmyzsh repo exists in home directory
-
 ohmyzsh_remote_url=$(git -C ~/.oh-my-zsh remote get-url origin)
 official_remote_url="https://github.com/ohmyzsh/ohmyzsh.git"
 
