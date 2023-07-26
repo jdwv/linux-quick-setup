@@ -145,31 +145,6 @@ for app in ${ApplicationList[@]}; do
     fi
 done
 
-################
-# Change shell #
-################
-eval "which chsh" &> /dev/null
-if [[ $? -ne 0 ]]; then
-    echo "chsh not installed - manual sed replace on /etc/passwd"
-    # Define the username and desired shell
-    username=$(whoami)
-    desired_shell="zsh"
-
-    # Get the correct path for the desired shell
-    shell_path=$(which "$desired_shell")
-
-    # Check if the shell is found by 'which'
-    if [ -z "$shell_path" ]; then
-        echo "Error: Shell '$desired_shell' not found."
-    else
-        # Use sed to update the /etc/passwd file
-        #sudo sed -i "s|^$username:[^:]*:|$username:$shell_path:|" /etc/passwd
-		echo "Shell for user $username needs to be updated to $shell_path"
-	fi
-else
-    sudo chsh -s $(which zsh) $(whoami)
-fi
-
 eval "which zsh" &> /dev/null
 if [[ $? -ne 0 ]]; then
     if [ -z "$ZSH" ]; then
@@ -177,7 +152,15 @@ if [[ $? -ne 0 ]]; then
         ZSH="$HOME/.oh-my-zsh"
     fi
 
-
+    ################
+    # Change shell #
+    ################
+    # Define the username and desired shell
+    username=$(whoami)
+    desired_shell="zsh"
+    # Get the correct path for the desired shell
+    shell_path=$(which "$desired_shell")
+    sudo usermodd --shell $shell_path $username
 
     ###################
     # Install ohmyzsh #
