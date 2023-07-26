@@ -166,7 +166,7 @@ if [[ $? -ne 0 ]]; then
         sudo sed -i "s|^$username:[^:]*:|$username:$shell_path:|" /etc/passwd
 		echo "Shell for user $username has been updated to $shell_path"
 	fi
-elif
+else
     sudo chsh -s $(which zsh) $(whoami)
 fi
 
