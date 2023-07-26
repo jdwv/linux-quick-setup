@@ -172,6 +172,13 @@ fi
 
 eval "which zsh" &> /dev/null
 if [[ $? -ne 0 ]]; then
+    if [ -z "$ZSH" ]; then
+        # Set ZSH var if running from bash
+        ZSH="$HOME/.oh-my-zsh"
+    fi
+
+
+
     ###################
     # Install ohmyzsh #
     ###################
