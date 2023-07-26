@@ -7,7 +7,6 @@ com.microsoft.Edge
 com.valvesoftware.Steam
 com.visualstudio.code
 io.gitlab.librewolf-community
-net.lutris.Lutris
 org.deluge_torrent.deluge
 org.gimp.GIMP
 org.gnome.Extensions
