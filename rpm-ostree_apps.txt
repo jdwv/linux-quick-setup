@@ -1,0 +1,9 @@
+autofs
+distrobox
+exa
+gnome-tweaks
+tilix
+tmux
+vim
+wireguard-tools
+zsh
