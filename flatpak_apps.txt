@@ -9,7 +9,6 @@ com.visualstudio.code
 io.gitlab.librewolf-community
 org.deluge_torrent.deluge
 org.gimp.GIMP
-org.gnome.Extensions
 org.kde.krita
 org.ksnip.ksnip
 org.libreoffice.LibreOffice

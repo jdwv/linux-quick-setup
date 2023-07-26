@@ -17,6 +17,7 @@ update_flatpak_apps() {
 # Function to update RPM-OSTree apps
 update_rpm_ostree_apps() {
     while IFS= read -r rpm_ostree_app; do
+        rpm-ostree override remove firefox firefox-langpacks
         rpm-ostree install -y "$rpm_ostree_app"
     done < <(wget -O - https://raw.githubusercontent.com/jdwv/linux-quick-setup/main/rpm-ostree_apps.txt)
 }
