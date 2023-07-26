@@ -170,97 +170,100 @@ else
     sudo chsh -s $(which zsh) $(whoami)
 fi
 
-###################
-# Install ohmyzsh #
-###################
+eval "which zsh" &> /dev/null
+if [[ $? -ne 0 ]]; then
+    ###################
+    # Install ohmyzsh #
+    ###################
 
-# Check if ohmyzsh repo exists in home directory
-ohmyzsh_remote_url=$(git -C ~/.oh-my-zsh remote get-url origin)
-official_remote_url="https://github.com/ohmyzsh/ohmyzsh.git"
+    # Check if ohmyzsh repo exists in home directory
+    ohmyzsh_remote_url=$(git -C ~/.oh-my-zsh remote get-url origin)
+    official_remote_url="https://github.com/ohmyzsh/ohmyzsh.git"
 
-if [[ "$ohmyzsh_remote_url" == "$official_remote_url" ]]; then
-    echo "Oh My Zsh - already installed - updating"
-    "$ZSH/tools/upgrade.sh"
-else
-    echo "Oh My Zsh - new install"
-    if [ -d "$ZSH" ]; then
-        echo "Removing existing ZSH folder: $ZSH"
-        rm -rf "$ZSH"
-    fi
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended > /dev/null
-fi
-
-#######################
-# Clone powerlevel10k #
-#######################
-TARGET_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
-REPO="https://github.com/romkatv/powerlevel10k.git"
-BRANCH=$(git ls-remote --heads $REPO | grep -q 'refs/heads/main' && echo 'main' || (git ls-remote --heads $REPO | grep -q 'refs/heads/master' && echo 'master') || echo null)
-
-if [ -e "${TARGET_DIR}" ]
-then
-    pushd $TARGET_DIR
-    git fetch
-    exists=$(git show-branch $BRANCH > /dev/null 2>&1; echo $?)
-    if [ "$exists" == "0" ]
-    then
-        echo "$TARGET_DIR already up to date."
+    if [[ "$ohmyzsh_remote_url" == "$official_remote_url" ]]; then
+        echo "Oh My Zsh - already installed - updating"
+        "$ZSH/tools/upgrade.sh"
     else
-        git checkout -b $BRANCH origin/$BRANCH
+        echo "Oh My Zsh - new install"
+        if [ -d "$ZSH" ]; then
+            echo "Removing existing ZSH folder: $ZSH"
+            rm -rf "$ZSH"
+        fi
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended > /dev/null
+    fi
+
+    #######################
+    # Clone powerlevel10k #
+    #######################
+    TARGET_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
+    REPO="https://github.com/romkatv/powerlevel10k.git"
+    BRANCH=$(git ls-remote --heads $REPO | grep -q 'refs/heads/main' && echo 'main' || (git ls-remote --heads $REPO | grep -q 'refs/heads/master' && echo 'master') || echo null)
+
+    if [ -e "${TARGET_DIR}" ]
+    then
+        pushd $TARGET_DIR
+        git fetch
+        exists=$(git show-branch $BRANCH > /dev/null 2>&1; echo $?)
+        if [ "$exists" == "0" ]
+        then
+            echo "$TARGET_DIR already up to date."
+        else
+            git checkout -b $BRANCH origin/$BRANCH
+        fi
+        popd_if_stack_not_empty
+    else
+        git clone $REPO $TARGET_DIR
     fi
     popd_if_stack_not_empty
-else
-    git clone $REPO $TARGET_DIR
-fi
-popd_if_stack_not_empty
 
-#################################
-# Clone zsh syntax highlighting #
-#################################
-TARGET_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting"
-REPO="https://github.com/zsh-users/zsh-syntax-highlighting.git"
-BRANCH=$(git ls-remote --heads $REPO | grep -q 'refs/heads/main' && echo 'main' || (git ls-remote --heads $REPO | grep -q 'refs/heads/master' && echo 'master') || echo null)
+    #################################
+    # Clone zsh syntax highlighting #
+    #################################
+    TARGET_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting"
+    REPO="https://github.com/zsh-users/zsh-syntax-highlighting.git"
+    BRANCH=$(git ls-remote --heads $REPO | grep -q 'refs/heads/main' && echo 'main' || (git ls-remote --heads $REPO | grep -q 'refs/heads/master' && echo 'master') || echo null)
 
-if [ -e "${TARGET_DIR}" ]
-then
-    pushd $TARGET_DIR
-    git fetch
-    exists=$(git show-branch $BRANCH > /dev/null 2>&1; echo $?)
-    if [ "$exists" == "0" ]
+    if [ -e "${TARGET_DIR}" ]
     then
-        echo "$TARGET_DIR already up to date."
+        pushd $TARGET_DIR
+        git fetch
+        exists=$(git show-branch $BRANCH > /dev/null 2>&1; echo $?)
+        if [ "$exists" == "0" ]
+        then
+            echo "$TARGET_DIR already up to date."
+        else
+            git checkout -b $BRANCH origin/$BRANCH
+        fi
+        popd_if_stack_not_empty
     else
-        git checkout -b $BRANCH origin/$BRANCH
+        git clone $REPO $TARGET_DIR
     fi
     popd_if_stack_not_empty
-else
-    git clone $REPO $TARGET_DIR
-fi
-popd_if_stack_not_empty
 
-###########################
-# Clone zsh auto complete #
-###########################
-TARGET_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-autosuggestions"
-REPO="https://github.com/zsh-users/zsh-autosuggestions"
-BRANCH=$(git ls-remote --heads $REPO | grep -q 'refs/heads/main' && echo 'main' || (git ls-remote --heads $REPO | grep -q 'refs/heads/master' && echo 'master') || echo null)
+    ###########################
+    # Clone zsh auto complete #
+    ###########################
+    TARGET_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-autosuggestions"
+    REPO="https://github.com/zsh-users/zsh-autosuggestions"
+    BRANCH=$(git ls-remote --heads $REPO | grep -q 'refs/heads/main' && echo 'main' || (git ls-remote --heads $REPO | grep -q 'refs/heads/master' && echo 'master') || echo null)
 
-if [ -e "${TARGET_DIR}" ]
-then
-    pushd $TARGET_DIR
-    git fetch
-    exists=$(git show-branch $BRANCH > /dev/null 2>&1; echo $?)
-    if [ "$exists" == "0" ]
+    if [ -e "${TARGET_DIR}" ]
     then
-        echo "$TARGET_DIR already up to date."
+        pushd $TARGET_DIR
+        git fetch
+        exists=$(git show-branch $BRANCH > /dev/null 2>&1; echo $?)
+        if [ "$exists" == "0" ]
+        then
+            echo "$TARGET_DIR already up to date."
+        else
+            git checkout -b $BRANCH origin/$BRANCH
+        fi
+        popd_if_stack_not_empty
     else
-        git checkout -b $BRANCH origin/$BRANCH
+        git clone $REPO $TARGET_DIR
     fi
     popd_if_stack_not_empty
-else
-    git clone $REPO $TARGET_DIR
-fi
-popd_if_stack_not_empty
+}
 
 #################
 # Download font #
