@@ -270,7 +270,7 @@ if [[ $? -ne 0 ]]; then
         git clone $REPO $TARGET_DIR
     fi
     popd_if_stack_not_empty
-}
+fi
 
 #################
 # Download font #
