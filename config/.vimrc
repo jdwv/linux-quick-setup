@@ -6,8 +6,8 @@ syntax on
 " Auto reload .vimrc when saved
 au BufWritePost .vimrc so ~/.vimrc
 
-# User paste mode for inserts - keeps indentation
-# Set as shortcut - don't enable by default
+" User paste mode for inserts - keeps indentation
+" Set as shortcut - don't enable by default
 map <F10> :set invpaste<CR>
 
 set backspace=2
