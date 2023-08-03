@@ -26,7 +26,7 @@ ApplicationList=(
     "vim"
     "git"
     "curl"
-    "distrobox"
+    "unzip"
 )
 
 echo "Updating repositories before installing apps"
@@ -146,7 +146,7 @@ for app in ${ApplicationList[@]}; do
 done
 
 eval "which zsh" &> /dev/null
-if [[ $? -ne 0 ]]; then
+if [[ $? -eq 0 ]]; then # Check zsh installed
     if [ -z "$ZSH" ]; then
         # Set ZSH var if running from bash
         ZSH="$HOME/.oh-my-zsh"
@@ -160,7 +160,7 @@ if [[ $? -ne 0 ]]; then
     desired_shell="zsh"
     # Get the correct path for the desired shell
     shell_path=$(which "$desired_shell")
-    sudo usermodd --shell $shell_path $username
+    sudo usermod --shell $shell_path $username
 
     ###################
     # Install ohmyzsh #
