@@ -1,6 +1,6 @@
 autofs
 distrobox
-exa
+lsd
 gnome-tweaks
 tilix
 tmux

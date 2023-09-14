@@ -21,7 +21,7 @@ popd_if_stack_not_empty() {
 ################
 ApplicationList=(
     "zsh"
-    "exa"
+    "lsd"
     "tmux"
     "vim"
     "git"

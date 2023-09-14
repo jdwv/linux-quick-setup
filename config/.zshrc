@@ -31,11 +31,11 @@ source $ZSH/oh-my-zsh.sh
 
 unsetopt BEEP
 
-# Run exa if installed
-if [ -x "$(command -v exa)" ]; then
-    alias ls="exa"
-    alias la="exa --long --all --group"
-    alias lst="exa --tree --level=2"
+# Run lsd if installed
+if [ -x "$(command -v lsd)" ]; then
+    alias ls="lsd"
+    alias la="lsd -la --group-directories-first"
+    alias lst="lsd -la --group-directories-first --tree --depth 2"
 fi
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
