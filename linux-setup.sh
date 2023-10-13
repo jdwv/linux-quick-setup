@@ -29,8 +29,105 @@ ApplicationList=(
     "unzip"
 )
 
-echo "Updating repositories before installing apps"
-#sudo apt update
+install_gui_apps() {
+    if [[ "$XDG_SESSION_TYPE" == "x11" || "$XDG_SESSION_TYPE" == "wayland" ]]; then
+
+        if pgrep -x "gnome-shell" > /dev/null; then
+            echo "GNOME is installed - installing gnome-tweaks"
+            # Install gnome-tweaks
+            eval "sudo $installString gnome-tweaks"
+        else
+
+        #################
+        # Flatpak stuff #
+        #################
+        if ! command -v flatpak &>/dev/null; then
+            echo "Flatpak is not installed. Installing Flatpak..."
+            eval "sudo $installString flatpak"
+            if lsb_release -si | grep -E -i 'debian|ubuntu' > /dev/null; then
+                # Install gnome plugin for debian/ubuntu distros
+                eval "sudo $installString gnome-software-plugin-flatpak"
+            else            
+        fi
+
+    
+        # flatpak | Download flatpak service files
+        flatpakDownloadList=(
+            "https://raw.githubusercontent.com/jdwv/linux-quick-setup/main/etc/systemd/system/flatpak-automatic.service"
+            "https://raw.githubusercontent.com/jdwv/linux-quick-setup/main/etc/systemd/system/flatpak-automatic.timer"
+        )
+    
+        for cloudFile in "${flatpakDownloadList[@]}"; do 
+            fileName=$(basename "$cloudFile")
+            localFilePath="/etc/systemd/system/${fileName}"
+            backupDir="/etc/systemd/system/config_backups"
+            backupCount=2
+    
+            # Check if local file and remote file have the same checksum
+            if [[ -f "$localFilePath" && $(curl -s "$cloudFile" | md5sum | awk '{print $1}') == $(md5sum "$localFilePath" | awk '{print $1}') ]]; then
+                echo "Skipping download of $fileName - Local file and remote file are the same."
+            else
+                # Create backup directory if it doesn't exist
+                if [[ ! -d "$backupDir" ]]; then
+                    sudo mkdir "$backupDir"
+                fi
+    
+                # Backup existing file with date timestamp
+                timestamp=$(date +%Y%m%d%H%M%S)
+                backupFilePath="${backupDir}/${fileName}.${timestamp}"
+                sudo cp "$localFilePath" "$backupFilePath"
+    
+                echo "Existing $fileName backed up to $backupFilePath"
+    
+                # Delete old backups, keeping only the most recent $backupCount
+                backups=("$backupDir/${fileName}".*)
+                backupCount=$((${#backups[@]} - $backupCount))
+    
+                if [[ $backupCount -gt 0 ]]; then
+                    # Sort backups by modification time, oldest first
+                    IFS=$'\n' sortedBackups=($(ls -t "${backups[@]}"))
+                    unset IFS
+    
+                    # Remove oldest backups
+                    for ((i = 0; i < backupCount; i++)); do
+                        sudo rm "${sortedBackups[$i]}"
+                        echo "Removed old backup: ${sortedBackups[$i]}"
+                    done
+                fi
+                echo "Downloading $fileName..."
+                sudo curl -o "$localFilePath" "$cloudFile"
+            fi
+        done
+    
+        # flatpak | Reload daemon before enabling new service
+        sudo systemctl daemon-reload
+    
+        # flatpak | Copy + enable flatpak service/timer
+        sudo systemctl enable --now flatpak-automatic.timer
+    
+        # flatpak | Enable flatpak home/host restrictions
+        flatpak override --user --nofilesystem=home
+        flatpak override --user --nofilesystem=host
+    
+        # Flathub setup
+        flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+    
+        # Install flatpaks
+        flatpak install -y --noninteractive flathub com.github.tchx84.Flatseal         
+        flatpak install -y --noninteractive org.mozilla.firefox
+        
+        if [ $? -eq 0 ]; then
+            echo "Removing built in firefox in favour of flatpak"
+            eval "sudo $removeString firefox"
+        else
+        xdg-settings set default-web-browser org.mozilla.firefox.desktop
+
+        # Loop over all flatpaks
+        while IFS= read -r flatpak_app; do
+            flatpak install -y --noninteractive flathub "$flatpak_app"
+        done < <(wget -O - https://raw.githubusercontent.com/jdwv/linux-quick-setup/main/flatpak_apps.txt)        
+    fi
+}
 
 #########################
 # Check Package Manager #
@@ -38,65 +135,7 @@ echo "Updating repositories before installing apps"
 
 if rpm-ostree status | grep silverblue &> /dev/null; then
     echo "Fedora Silverblue installed"
-
-    # flatpak | Download flatpak service files
-    flatpakDownloadList=(
-        "https://raw.githubusercontent.com/jdwv/linux-quick-setup/main/etc/systemd/system/flatpak-automatic.service"
-        "https://raw.githubusercontent.com/jdwv/linux-quick-setup/main/etc/systemd/system/flatpak-automatic.timer"
-    )
-
-    for cloudFile in "${flatpakDownloadList[@]}"; do 
-        fileName=$(basename "$cloudFile")
-        localFilePath="/etc/systemd/system/${fileName}"
-        backupDir="/etc/systemd/system/config_backups"
-        backupCount=2
-
-        # Check if local file and remote file have the same checksum
-        if [[ -f "$localFilePath" && $(curl -s "$cloudFile" | md5sum | awk '{print $1}') == $(md5sum "$localFilePath" | awk '{print $1}') ]]; then
-            echo "Skipping download of $fileName - Local file and remote file are the same."
-        else
-            # Create backup directory if it doesn't exist
-            if [[ ! -d "$backupDir" ]]; then
-                sudo mkdir "$backupDir"
-            fi
-
-            # Backup existing file with date timestamp
-            timestamp=$(date +%Y%m%d%H%M%S)
-            backupFilePath="${backupDir}/${fileName}.${timestamp}"
-            sudo cp "$localFilePath" "$backupFilePath"
-
-            echo "Existing $fileName backed up to $backupFilePath"
-
-            # Delete old backups, keeping only the most recent $backupCount
-            backups=("$backupDir/${fileName}".*)
-            backupCount=$((${#backups[@]} - $backupCount))
-
-            if [[ $backupCount -gt 0 ]]; then
-                # Sort backups by modification time, oldest first
-                IFS=$'\n' sortedBackups=($(ls -t "${backups[@]}"))
-                unset IFS
-
-                # Remove oldest backups
-                for ((i = 0; i < backupCount; i++)); do
-                    sudo rm "${sortedBackups[$i]}"
-                    echo "Removed old backup: ${sortedBackups[$i]}"
-                done
-            fi
-            echo "Downloading $fileName..."
-            sudo curl -o "$localFilePath" "$cloudFile"
-        fi
-    done
-
-    # flatpak | Reload daemon before enabling new service
-    sudo systemctl daemon-reload
-
-    # flatpak | Copy + enable flatpak service/timer
-    sudo systemctl enable --now flatpak-automatic.timer
-
-    # flatpak | Enable flatpak home/host restrictions
-    flatpak override --user --nofilesystem=home
-    flatpak override --user --nofilesystem=host
-
+    
     # rpm-ostreee | set staging config
     sudo sed -i 's/#AutomaticUpdatePolicy.*/AutomaticUpdatePolicy=stage/' /etc/rpm-ostreed.conf
 
@@ -105,35 +144,33 @@ if rpm-ostree status | grep silverblue &> /dev/null; then
 
     # Set install string for remaineder of script    
     installString="rpm-ostree install -y"
-
-    # Add apps to list to install
-    sudo rpm-ostree install -y gnome-tweaks
-
-    # Flathub setup
-    flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-
-    # Install flatpaks
-    flatpak install -y --noninteractive flathub com.github.tchx84.Flatseal         
-    flatpak install -y --noninteractive org.mozilla.firefox      
-    xdg-settings set default-web-browser org.mozilla.firefox.desktop
+    removeString="rpm-ostree remove -y"
 
 elif command -v apt &> /dev/null; then
     echo "Debian-based distro"
     installString="apt-get install -y"
+    removeString="apt-get remove -y"
 elif command -v yum &> /dev/null; then
     echo "Red Hat-based distro"
     installString="yum install -y"
+    removeString="yum remove -y"
 elif command -v pacman &> /dev/null; then
     echo "Arch-based distro"
     installString="pacman -Syu --noconfirm"
+    removeString="pacman -Rns --noconfirm"
 elif command -v dnf &> /dev/null; then
     echo "Fedora-based distro"
     installString="dnf install -y"
+    removeString="dnf remove -y"
 else
     echo "Unknown package manager"
     exit 1
 fi
 
+# Install flatpaks - checks if GUI
+install_gui_apps
+
+# Install CLI apps
 for app in ${ApplicationList[@]}; do 
     echo "Checking $app"
     eval "which $app" &> /dev/null
