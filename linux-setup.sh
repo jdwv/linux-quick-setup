@@ -1,13 +1,14 @@
 #!/usr/bin/bash
 
-cd $HOME
+
+# Set home dir to sudo user
+sudo_user_home=$(eval echo "~$SUDO_USER")
+cd $sudo_user_home
 
 # Super bad it, don't do this. I wrote this file, therefore I trust it.
 # wget -O - https://thisfile.sh | bash
 
-
 # Funtions
-
 popd_if_stack_not_empty() {
     # Check if the directory stack has more than one entry
     if [[ $(dirs -p | wc -l) -gt 1 ]]; then
@@ -16,22 +17,10 @@ popd_if_stack_not_empty() {
     fi
 }
 
-################
-# Install apps #
-################
-ApplicationList=(
-    "zsh"
-    "lsd"
-    "tmux"
-    "vim"
-    "git"
-    "curl"
-    "unzip"
-)
-
 install_gui_apps() {
-    if [[ "$XDG_SESSION_TYPE" == "x11" || "$XDG_SESSION_TYPE" == "wayland" ]]; then
-
+    echo "Trying flatpaks - $XDG_SESSION_TYPE - $DISPLAY"
+    if xhost >& /dev/null; then
+        echo "Trying flatpaks - $installString"
         if pgrep -x "gnome-shell" > /dev/null; then
             echo "GNOME is installed - installing gnome-tweaks"
             # Install gnome-tweaks
@@ -127,13 +116,14 @@ install_gui_apps() {
             flatpak install -y --noninteractive flathub "$flatpak_app"
         done < <(wget -O - https://raw.githubusercontent.com/jdwv/linux-quick-setup/main/flatpak_apps.txt)        
     fi
+    echo "flatpak function done"
 }
 
 #########################
 # Check Package Manager #
 #########################
 
-if rpm-ostree status | grep silverblue &> /dev/null; then
+if rpm-ostree status &> /dev/null | grep silverblue &> /dev/null; then
     echo "Fedora Silverblue installed"
     
     # rpm-ostreee | set staging config
@@ -150,18 +140,13 @@ elif command -v apt &> /dev/null; then
     echo "Debian-based distro"
     installString="apt-get install -y"
     removeString="apt-get remove -y"
+elif command -v pacman &> /dev/null; then
+    echo "Arch-based distro"
+    installString="pacman -Syu --noconfirm"cd
 elif command -v dnf &> /dev/null; then
     echo "Fedora-based distro"
     installString="dnf install -y"
     removeString="dnf remove -y"
-elif command -v yum &> /dev/null; then
-    echo "Red Hat-based distro"
-    installString="yum install -y"
-    removeString="yum remove -y"
-elif command -v pacman &> /dev/null; then
-    echo "Arch-based distro"
-    installString="pacman -Syu --noconfirm"
-    removeString="pacman -Rns --noconfirm"
 else
     echo "Unknown package manager"
     exit 1
@@ -169,6 +154,19 @@ fi
 
 # Install flatpaks - checks if GUI
 install_gui_apps
+
+################
+# Install apps #
+################
+ApplicationList=(
+    "zsh"
+    "lsd"
+    "tmux"
+    "vim"
+    "git"
+    "curl"
+    "unzip"
+)
 
 # Install CLI apps
 for app in ${ApplicationList[@]}; do 
@@ -184,16 +182,18 @@ done
 
 eval "which zsh" &> /dev/null
 if [[ $? -eq 0 ]]; then # Check zsh installed
+    
     if [ -z "$ZSH" ]; then
         # Set ZSH var if running from bash
-        ZSH="$HOME/.oh-my-zsh"
+        echo "zsh running from bash - setting ZSH to ${sudo_user_home}/.oh-my-zsh"
+        ZSH="${sudo_user_home}/.oh-my-zsh"
     fi
 
     ################
     # Change shell #
     ################
     # Define the username and desired shell
-    username=$(whoami)
+    username=$SUDO_USER
     desired_shell="zsh"
     # Get the correct path for the desired shell
     shell_path=$(which "$desired_shell")
@@ -202,92 +202,92 @@ if [[ $? -eq 0 ]]; then # Check zsh installed
     ###################
     # Install ohmyzsh #
     ###################
-
-    # Check if ohmyzsh repo exists in home directory
-    ohmyzsh_remote_url=$(git -C ~/.oh-my-zsh remote get-url origin)
-    official_remote_url="https://github.com/ohmyzsh/ohmyzsh.git"
-
-    if [[ "$ohmyzsh_remote_url" == "$official_remote_url" ]]; then
-        echo "Oh My Zsh - already installed - updating"
+    if [ -d "$ZSH" ]; then
+    	echo "$ZSH is a directory and exists"
+	    # Check if ohmyzsh repo exists in home directory
+	    ohmyzsh_remote_url=$(sudo -u $SUDO_USER git -C ~/.oh-my-zsh remote get-url origin)
+	    official_remote_url="https://github.com/ohmyzsh/ohmyzsh.git"
+	if [[ "$ohmyzsh_remote_url" == "$official_remote_url" ]]; then
+	    echo "Oh My Zsh - already installed - updating"
         "$ZSH/tools/upgrade.sh"
+	else 
+	    echo "Removing existing ZSH folder: $ZSH"
+	    rm -rf "$ZSH"
+	fi
     else
         echo "Oh My Zsh - new install"
-        if [ -d "$ZSH" ]; then
-            echo "Removing existing ZSH folder: $ZSH"
-            rm -rf "$ZSH"
-        fi
-        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended > /dev/null
+        sudo -u $SUDO_USER sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended > /dev/null
     fi
 
     #######################
     # Clone powerlevel10k #
     #######################
-    TARGET_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
+    TARGET_DIR="${ZSH_CUSTOM:-$sudo_user_home/.oh-my-zsh/custom}/themes/powerlevel10k"
     REPO="https://github.com/romkatv/powerlevel10k.git"
     BRANCH=$(git ls-remote --heads $REPO | grep -q 'refs/heads/main' && echo 'main' || (git ls-remote --heads $REPO | grep -q 'refs/heads/master' && echo 'master') || echo null)
 
     if [ -e "${TARGET_DIR}" ]
     then
         pushd $TARGET_DIR
-        git fetch
-        exists=$(git show-branch $BRANCH > /dev/null 2>&1; echo $?)
+        sudo -u $SUDO_USER git fetch
+        exists=$(sudo -u $SUDO_USER git show-branch $BRANCH > /dev/null 2>&1; echo $?)
         if [ "$exists" == "0" ]
         then
             echo "$TARGET_DIR already up to date."
         else
-            git checkout -b $BRANCH origin/$BRANCH
+            sudo -u $SUDO_USER git checkout -b $BRANCH origin/$BRANCH
         fi
         popd_if_stack_not_empty
     else
-        git clone $REPO $TARGET_DIR
+        sudo -u $SUDO_USER git clone $REPO $TARGET_DIR
     fi
     popd_if_stack_not_empty
 
     #################################
     # Clone zsh syntax highlighting #
     #################################
-    TARGET_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting"
+    TARGET_DIR="${ZSH_CUSTOM:-$sudo_user_home/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting"
     REPO="https://github.com/zsh-users/zsh-syntax-highlighting.git"
-    BRANCH=$(git ls-remote --heads $REPO | grep -q 'refs/heads/main' && echo 'main' || (git ls-remote --heads $REPO | grep -q 'refs/heads/master' && echo 'master') || echo null)
+    BRANCH=$(sudo -u $SUDO_USER git ls-remote --heads $REPO | grep -q 'refs/heads/main' && echo 'main' || (sudo -u $SUDO_USER git ls-remote --heads $REPO | grep -q 'refs/heads/master' && echo 'master') || echo null)
 
     if [ -e "${TARGET_DIR}" ]
     then
         pushd $TARGET_DIR
-        git fetch
-        exists=$(git show-branch $BRANCH > /dev/null 2>&1; echo $?)
+        sudo -u $SUDO_USER git fetch
+        exists=$(sudo -u $SUDO_USER git show-branch $BRANCH > /dev/null 2>&1; echo $?)
         if [ "$exists" == "0" ]
         then
             echo "$TARGET_DIR already up to date."
         else
-            git checkout -b $BRANCH origin/$BRANCH
+            sudo -u $SUDO_USER git checkout -b $BRANCH origin/$BRANCH
         fi
         popd_if_stack_not_empty
     else
-        git clone $REPO $TARGET_DIR
+        sudo -u $SUDO_USER git clone $REPO $TARGET_DIR
     fi
     popd_if_stack_not_empty
 
     ###########################
     # Clone zsh auto complete #
     ###########################
-    TARGET_DIR="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-autosuggestions"
+    TARGET_DIR="${ZSH_CUSTOM:-$sudo_user_home/.oh-my-zsh/custom}/plugins/zsh-autosuggestions"
     REPO="https://github.com/zsh-users/zsh-autosuggestions"
-    BRANCH=$(git ls-remote --heads $REPO | grep -q 'refs/heads/main' && echo 'main' || (git ls-remote --heads $REPO | grep -q 'refs/heads/master' && echo 'master') || echo null)
+    BRANCH=$(sudo -u $SUDO_USER git ls-remote --heads $REPO | grep -q 'refs/heads/main' && echo 'main' || (sudo -u $SUDO_USER git ls-remote --heads $REPO | grep -q 'refs/heads/master' && echo 'master') || echo null)
 
     if [ -e "${TARGET_DIR}" ]
     then
         pushd $TARGET_DIR
-        git fetch
-        exists=$(git show-branch $BRANCH > /dev/null 2>&1; echo $?)
+        sudo -u $SUDO_USER git fetch
+        exists=$(sudo -u $SUDO_USER git show-branch $BRANCH > /dev/null 2>&1; echo $?)
         if [ "$exists" == "0" ]
         then
             echo "$TARGET_DIR already up to date."
         else
-            git checkout -b $BRANCH origin/$BRANCH
+            sudo -u $SUDO_USER git checkout -b $BRANCH origin/$BRANCH
         fi
         popd_if_stack_not_empty
     else
-        git clone $REPO $TARGET_DIR
+        sudo -u $SUDO_USER git clone $REPO $TARGET_DIR
     fi
     popd_if_stack_not_empty
 fi
@@ -301,10 +301,10 @@ fontURL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.1/$custo
 fontDir="${HOME}/.local/share/fonts/$customFontName"
 
 if [[ ! -d $fontDir ]]; then
-    curl -L -O $fontURL
-    mkdir -p $fontDir
-    unzip $customFontFile -d $fontDir
-    rm $customFontFile
+    sudo -u $SUDO_USER curl -L -O $fontURL
+    sudo -u $SUDO_USER mkdir -p $fontDir
+    sudo -u $SUDO_USER unzip $customFontFile -d $fontDir
+    sudo -u $SUDO_USER rm $customFontFile
 else
     echo "Font '$customFontName' already installed - skipping"
 fi
@@ -321,8 +321,8 @@ configDownloadList=(
 
 for cloudFile in "${configDownloadList[@]}"; do 
     fileName=$(basename "$cloudFile")
-    localFilePath="${HOME}/${fileName}"
-    backupDir="${HOME}/config_backups"
+    localFilePath="${sudo_user_home}/${fileName}"
+    backupDir="${sudo_user_home}/config_backups"
     backupCount=5
 
     # Check if local file and remote file have the same checksum
@@ -331,13 +331,13 @@ for cloudFile in "${configDownloadList[@]}"; do
     else
         # Create backup directory if it doesn't exist
         if [[ ! -d "$backupDir" ]]; then
-            mkdir "$backupDir"
+            sudo -u $SUDO_USER mkdir "$backupDir"
         fi
 
         # Backup existing file with date timestamp
         timestamp=$(date +%Y%m%d%H%M%S)
         backupFilePath="${backupDir}/${fileName}.${timestamp}"
-        cp "$localFilePath" "$backupFilePath"
+        sudo -u $SUDO_USER cp "$localFilePath" "$backupFilePath"
 
         echo "Existing $fileName backed up to $backupFilePath"
 
@@ -352,12 +352,11 @@ for cloudFile in "${configDownloadList[@]}"; do
 
             # Remove oldest backups
             for ((i = 0; i < backupCount; i++)); do
-                rm "${sortedBackups[$i]}"
+                sudo -u $SUDO_USER rm "${sortedBackups[$i]}"
                 echo "Removed old backup: ${sortedBackups[$i]}"
             done
         fi
         echo "Downloading $fileName..."
-        curl -o "$localFilePath" "$cloudFile"
+        sudo -u $SUDO_USER curl -o "$localFilePath" "$cloudFile"
     fi
 done
-
