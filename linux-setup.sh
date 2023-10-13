@@ -47,7 +47,7 @@ install_gui_apps() {
             if lsb_release -si | grep -E -i 'debian|ubuntu' > /dev/null; then
                 # Install gnome plugin for debian/ubuntu distros
                 eval "sudo $installString gnome-software-plugin-flatpak"
-            else            
+            fi            
         fi
 
     
@@ -119,7 +119,7 @@ install_gui_apps() {
         if [ $? -eq 0 ]; then
             echo "Removing built in firefox in favour of flatpak"
             eval "sudo $removeString firefox"
-        else
+        fi
         xdg-settings set default-web-browser org.mozilla.firefox.desktop
 
         # Loop over all flatpaks
