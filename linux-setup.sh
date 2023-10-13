@@ -150,6 +150,10 @@ elif command -v apt &> /dev/null; then
     echo "Debian-based distro"
     installString="apt-get install -y"
     removeString="apt-get remove -y"
+elif command -v dnf &> /dev/null; then
+    echo "Fedora-based distro"
+    installString="dnf install -y"
+    removeString="dnf remove -y"
 elif command -v yum &> /dev/null; then
     echo "Red Hat-based distro"
     installString="yum install -y"
@@ -158,10 +162,6 @@ elif command -v pacman &> /dev/null; then
     echo "Arch-based distro"
     installString="pacman -Syu --noconfirm"
     removeString="pacman -Rns --noconfirm"
-elif command -v dnf &> /dev/null; then
-    echo "Fedora-based distro"
-    installString="dnf install -y"
-    removeString="dnf remove -y"
 else
     echo "Unknown package manager"
     exit 1
