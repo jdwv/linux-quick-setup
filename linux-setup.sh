@@ -298,7 +298,7 @@ fi
 customFontName="Agave"
 customFontFile="$customFontName.zip"
 fontURL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.0.1/$customFontName.zip"
-fontDir="${HOME}/.local/share/fonts/$customFontName"
+fontDir="${sudo_user_home}/.local/share/fonts/$customFontName"
 
 if [[ ! -d $fontDir ]]; then
     sudo -u $SUDO_USER curl -L -O $fontURL
