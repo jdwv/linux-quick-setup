@@ -36,7 +36,7 @@ install_gui_apps() {
             echo "GNOME is installed - installing gnome-tweaks"
             # Install gnome-tweaks
             eval "sudo $installString gnome-tweaks"
-        else
+        fi
 
         #################
         # Flatpak stuff #
