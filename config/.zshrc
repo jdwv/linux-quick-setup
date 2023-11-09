@@ -31,6 +31,9 @@ source $ZSH/oh-my-zsh.sh
 
 unsetopt BEEP
 
+# Sudo keep user environment
+alias sudo="sudo -E"
+
 # Run lsd if installed
 if [ -x "$(command -v lsd)" ]; then
     alias ls="lsd"
