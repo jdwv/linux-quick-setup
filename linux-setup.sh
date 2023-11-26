@@ -125,7 +125,6 @@ install_gui_apps() {
 ################
 ApplicationList=(
     "zsh"
-    "lsd"
     "tmux"
     "vim"
     "git"
