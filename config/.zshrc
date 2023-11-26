@@ -38,8 +38,8 @@ alias sudo="sudo -E"
 # Run lsd if installed
 if [ -x "$(command -v lsd)" ]; then
     alias ls="lsd"
-    alias la="lsd -la --group-directories-first"
-    alias lst="lsd -la --group-directories-first --tree --depth 2"
+    alias la="lsd -la --group-dirs first"
+    alias lst="lsd -la --group-dirs first --tree --depth 2"
 fi
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
