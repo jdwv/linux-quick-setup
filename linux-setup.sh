@@ -120,6 +120,19 @@ install_gui_apps() {
     echo "flatpak function done"
 }
 
+################
+# Install apps #
+################
+ApplicationList=(
+    "zsh"
+    "lsd"
+    "tmux"
+    "vim"
+    "git"
+    "curl"
+    "unzip"
+)
+
 #########################
 # Check Package Manager #
 #########################
@@ -141,6 +154,25 @@ elif command -v apt &> /dev/null; then
     echo "Debian-based distro"
     installString="apt-get install -y"
     removeString="apt-get remove -y"
+    
+    # Default to snap first with backup to apt
+    if command -v snap &> /dev/null; then
+        installString=""
+        removeString=""
+        for app in ${ApplicationList[@]}; do 
+            echo "Checking $app"
+            eval "which $app" &> /dev/null
+            if [[ $? -ne 0 ]]; then
+        	    echo "${app} not installed"
+        	    eval "sudo snap install --non-interactive $app"
+                if [[ $? -ne 0 ]]; then
+                    eval "sudo apt-get install -y $app"
+                fi
+            else
+        	    echo "${app} already installed - skipping"
+            fi
+        done
+    fi
 elif command -v pacman &> /dev/null; then
     echo "Arch-based distro"
     installString="pacman -Syu --noconfirm"cd
@@ -156,30 +188,23 @@ fi
 # Install flatpaks - checks if GUI
 install_gui_apps
 
-################
-# Install apps #
-################
-ApplicationList=(
-    "zsh"
-    "lsd"
-    "tmux"
-    "vim"
-    "git"
-    "curl"
-    "unzip"
-)
-
 # Install CLI apps
-for app in ${ApplicationList[@]}; do 
-    echo "Checking $app"
-    eval "which $app" &> /dev/null
-    if [[ $? -ne 0 ]]; then
-        echo "${app} not installed"
-        eval "sudo $installString $app"
-    else
-        echo "${app} already installed - skipping"
-    fi
-done
+# empty install string to skip this for Ubuntu
+if [ ! -z "$installString" ]; then
+    echo "installString is set: >>$installString<<"
+    for app in ${ApplicationList[@]}; do 
+        echo "Checking $app"
+        eval "which $app" &> /dev/null
+        if [[ $? -ne 0 ]]; then
+    	    echo "${app} not installed"
+    	    eval "sudo $installString $app"
+        else
+    	    echo "${app} already installed - skipping"
+        fi
+    done
+else
+    echo "installString empty: bypassed for custom install"
+fi
 
 eval "which zsh" &> /dev/null
 if [[ $? -eq 0 ]]; then # Check zsh installed
