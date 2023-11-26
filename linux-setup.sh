@@ -160,6 +160,27 @@ elif command -v apt &> /dev/null; then
         installString=""
         removeString=""
         for app in ${ApplicationList[@]}; do 
+            # Get Ubuntu version
+            ubuntu_version=$(lsb_release -rs)
+            
+            # Check if the version is 22.04
+            if [ "$ubuntu_version" = "22.04" ]; then
+                echo "Ubuntu 22.04 detected."
+                # Remove lsd
+                
+                # Item to remove
+                item_to_remove="lsd"
+                
+                # Loop through the array indices
+                for i in "${!ApplicationList[@]}"; do
+                    if [ "${ApplicationList[i]}" == "$item_to_remove" ]; then
+                        unset my_array[i]  # Remove the item by unsetting its value
+                    fi
+                done
+                # Display the modified array
+                echo "Modified array: ${ApplicationList[@]}"
+            fi
+        
             echo "Checking $app"
             eval "which $app" &> /dev/null
             if [[ $? -ne 0 ]]; then
