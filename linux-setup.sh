@@ -164,7 +164,7 @@ elif command -v apt &> /dev/null; then
             eval "which $app" &> /dev/null
             if [[ $? -ne 0 ]]; then
         	    echo "${app} not installed"
-        	    eval "sudo snap install --non-interactive $app"
+        	    eval "sudo snap install $app"
                 if [[ $? -ne 0 ]]; then
                     eval "sudo apt-get install -y $app"
                 fi
