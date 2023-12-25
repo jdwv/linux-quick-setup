@@ -60,3 +60,11 @@ if command -v distrobox-host-exec &> /dev/null; then
         }
     fi
 fi
+
+if command -v tmux &> /dev/null; then
+    # Auto start TMUX session on ssh connections
+    if [[ $- =~ i ]] && [[ -z "$TMUX" ]] && [[ -n "$SSH_TTY" ]]; then
+        tmux new-session -A -s $USER
+    fi 
+fi
+
