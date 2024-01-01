@@ -1,3 +1,8 @@
+# Exec will open a single terminal so the SSH session disconnects when detatching tmux
+if [[ -z "$TMUX" ]] && [[ -n "$SSH_TTY" ]]; then
+  exec tmux new-session -A -s $USER
+fi
+
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
@@ -59,12 +64,5 @@ if command -v distrobox-host-exec &> /dev/null; then
             command_not_found_handle "$@"
         }
     fi
-fi
-
-if command -v tmux &> /dev/null; then
-    # Auto start TMUX session on ssh connections
-    if [[ $- =~ i ]] && [[ -z "$TMUX" ]] && [[ -n "$SSH_TTY" ]]; then
-        tmux new-session -A -s $USER
-    fi 
 fi
 
