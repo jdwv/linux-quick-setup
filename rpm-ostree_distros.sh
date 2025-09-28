@@ -93,13 +93,12 @@ customFontName="FiraCode"
 customFontFile="$customFontName.zip"
 fontURL="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/$customFontName.zip"
 fontDir="${user_home}/.local/share/fonts/$customFontName"
-username=$(whoami)
 
 if [[ ! -d $fontDir ]]; then
-    sudo -u $username -- curl -L -O $fontURL
-    sudo -u $username -- mkdir -p $fontDir
-    sudo -u $username -- unzip $customFontFile -d $fontDir
-    sudo -u $username -- rm $customFontFile
+    curl -L -O $fontURL
+    mkdir -p $fontDir
+    unzip $customFontFile -d $fontDir
+    rm $customFontFile
 else
     echo "Font '$customFontName' already installed - skipping"
 fi
