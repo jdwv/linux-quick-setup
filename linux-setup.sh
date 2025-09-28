@@ -40,7 +40,6 @@ install_gui_apps() {
             fi            
         fi
 
-    
         # flatpak | Download flatpak service files
         flatpakDownloadList=(
             "https://raw.githubusercontent.com/jdwv/linux-quick-setup/main/etc/systemd/system/flatpak-automatic.service"
@@ -138,16 +137,9 @@ ApplicationList=(
 
 if rpm-ostree status &> /dev/null | grep silverblue &> /dev/null; then
     echo "Fedora Silverblue installed"
-    
-    # rpm-ostreee | set staging config
-    sudo sed -i 's/#AutomaticUpdatePolicy.*/AutomaticUpdatePolicy=stage/' /etc/rpm-ostreed.conf
-
-    # rpm-ostree | Enable staging for rpm-ostree + timer service
-    sudo systemctl enable rpm-ostreed-automatic.timer --now
-
     # Set install string for remaineder of script    
-    installString="rpm-ostree install -y"
-    removeString="rpm-ostree remove -y"
+    #installString="rpm-ostree install -y"
+    #removeString="rpm-ostree remove -y"
 
 elif command -v apt &> /dev/null; then
     echo "Debian-based distro"

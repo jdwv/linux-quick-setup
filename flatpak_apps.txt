@@ -1,18 +1,23 @@
-com.discordapp.Discord
-com.github.flxzt.rnote
-com.github.iwalton3.jellyfin-media-player
-com.github.tchx84.Flatseal
-com.mattjakeman.ExtensionManager
-com.microsoft.Edge
-com.valvesoftware.Steam
-com.visualstudio.code
-io.gitlab.librewolf-community
-org.deluge_torrent.deluge
-org.gimp.GIMP
-org.kde.krita
-org.ksnip.ksnip
-org.libreoffice.LibreOffice
+# Browsers
 org.mozilla.firefox
-org.remmina.Remmina
+com.microsoft.Edge
+io.gitlab.librewolf-community
+
+# Chat
+com.discordapp.Discord
 org.signal.Signal
+
+# Productivity
+org.libreoffice.LibreOffice
+com.github.flxzt.rnote
+
+# Games and Media 
+com.github.iwalton3.jellyfin-media-player
 org.videolan.VLC
+com.valvesoftware.Steam
+
+# Utilities
+com.github.tchx84.Flatseal
+it.mijorus.gearlever
+com.visualstudio.code
+org.remmina.Remmina
