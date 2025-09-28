@@ -1,5 +1,24 @@
 #!/bin/bash
 
+wait-ostree() {
+    # Wait until rpm-ostree is idle
+    while ! rpm-ostree status | grep -q "State: idle"; do
+        echo "⏳ rpm-ostree not idle yet..."
+        sleep 5
+    done
+
+    # Only allow rpm-ostree or ostree commands
+    case "$1" in
+        rpm-ostree|ostree)
+            echo "✅ rpm-ostree is idle, running: $*"
+            sudo "$@"
+            ;;
+        *)
+            echo "❌ Error: command must start with 'rpm-ostree' or 'ostree'"
+            return 1
+            ;;
+    esac
+}
 
 flatpak_auto_update(){
     # flatpak | Download flatpak service files
@@ -50,10 +69,10 @@ rpm_ostree_config() {
     sudo systemctl enable rpm-ostreed-automatic.timer --now
 
     # Remove firefox - replaced by flatpak
-    rpm-ostree override remove firefox firefox-langpacks
+    wait-ostree rpm-ostree override remove firefox firefox-langpacks
 
-    sudo ostree remote add tailscale https://pkgs.tailscale.com/stable/fedora/tailscale.repo
-    sudo rpm-ostree install tailscale
+    wait-ostree ostree remote add tailscale https://pkgs.tailscale.com/stable/fedora/tailscale.repo
+    wait-ostree rpm-ostree install tailscale
 
     # now register the device into the tailnet
     echo "Tailscale - Reboot and run the following commands:"
@@ -76,10 +95,10 @@ fontURL="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/$custo
 fontDir="${user_home}/.local/share/fonts/$customFontName"
 
 if [[ ! -d $fontDir ]]; then
-    sudo -u $username curl -L -O $fontURL
-    sudo -u $username mkdir -p $fontDir
-    sudo -u $username unzip $customFontFile -d $fontDir
-    sudo -u $username rm $customFontFile
+    sudo -u $username -- curl -L -O $fontURL
+    sudo -u $username -- mkdir -p $fontDir
+    sudo -u $username -- unzip $customFontFile -d $fontDir
+    sudo -u $username -- rm $customFontFile
 else
     echo "Font '$customFontName' already installed - skipping"
 fi
