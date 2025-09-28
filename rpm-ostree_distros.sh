@@ -92,7 +92,7 @@ rpm_ostree_config
 customFontName="FiraCode"
 customFontFile="$customFontName.zip"
 fontURL="https://github.com/ryanoasis/nerd-fonts/releases/latest/download/$customFontName.zip"
-fontDir="${user_home}/.local/share/fonts/$customFontName"
+fontDir="${HOME}/.local/share/fonts/$customFontName"
 
 if [[ ! -d $fontDir ]]; then
     curl -L -O $fontURL
