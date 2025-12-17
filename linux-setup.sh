@@ -100,10 +100,13 @@ install_gui_apps() {
     
         # Flathub setup
         flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+		flatpak remote-delete fedora
+		flatpak remote-delete fedora-testing
     
         # Install flatpaks
         flatpak install -y --noninteractive flathub com.github.tchx84.Flatseal         
-        flatpak install -y --noninteractive org.mozilla.firefox
+        flatpak install -y --noninteractive flathub org.mozilla.firefox
         
         if [ $? -eq 0 ]; then
             echo "Removing built in firefox in favour of flatpak"
