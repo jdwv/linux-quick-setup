@@ -1,22 +1,17 @@
-# Browsers
 org.mozilla.firefox
 com.microsoft.Edge
 io.gitlab.librewolf-community
 
-# Chat
 com.discordapp.Discord
 org.signal.Signal
 
-# Productivity
 org.libreoffice.LibreOffice
 com.github.flxzt.rnote
 
-# Games and Media 
 com.github.iwalton3.jellyfin-media-player
 org.videolan.VLC
 com.valvesoftware.Steam
 
-# Utilities
 com.github.tchx84.Flatseal
 it.mijorus.gearlever
 com.visualstudio.code
