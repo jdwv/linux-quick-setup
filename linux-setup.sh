@@ -25,7 +25,7 @@ install_gui_apps() {
         if pgrep -x "gnome-shell" > /dev/null; then
             echo "GNOME is installed - installing gnome-tweaks"
             # Install gnome-tweaks
-            eval "sudo $installString gnome-tweaks"
+            #eval "sudo $installString gnome-tweaks"
         fi
 
         #################
@@ -36,7 +36,7 @@ install_gui_apps() {
             eval "sudo $installString flatpak"
             if lsb_release -si | grep -E -i 'debian|ubuntu' > /dev/null; then
                 # Install gnome plugin for debian/ubuntu distros
-                eval "sudo $installString gnome-software-plugin-flatpak"
+                #eval "sudo $installString gnome-software-plugin-flatpak"
             fi            
         fi
 
