@@ -22,11 +22,11 @@ install_gui_apps() {
     echo "Trying flatpaks - $XDG_SESSION_TYPE - $DISPLAY"
     if xhost >& /dev/null; then
         echo "Trying flatpaks - $installString"
-        if pgrep -x "gnome-shell" > /dev/null; then
-            echo "GNOME is installed - installing gnome-tweaks"
+        #if pgrep -x "gnome-shell" > /dev/null; then
+            #echo "GNOME is installed - installing gnome-tweaks"
             # Install gnome-tweaks
             #eval "sudo $installString gnome-tweaks"
-        fi
+        #fi
 
         #################
         # Flatpak stuff #
@@ -34,10 +34,10 @@ install_gui_apps() {
         if ! command -v flatpak &>/dev/null; then
             echo "Flatpak is not installed. Installing Flatpak..."
             eval "sudo $installString flatpak"
-            if lsb_release -si | grep -E -i 'debian|ubuntu' > /dev/null; then
+            #if lsb_release -si | grep -E -i 'debian|ubuntu' > /dev/null; then
                 # Install gnome plugin for debian/ubuntu distros
                 #eval "sudo $installString gnome-software-plugin-flatpak"
-            fi            
+            #fi            
         fi
 
         # flatpak | Download flatpak service files
